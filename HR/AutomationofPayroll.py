@@ -1,9 +1,4 @@
 import pandas as pd
-
-folderpath = "F:\\Automation_of_HR_Work\\"
-EmployeeData = pd.read_excel(f"{folderpath}Employee-Database.xlsx")
-PayrollData = pd.read_excel(f"{folderpath}PayRollSummary.xlsx")
-
 def calculate_tax(income:float):
     
     """
@@ -148,11 +143,14 @@ with the total payment summary appended.
     AbFrame.loc[len(AbFrame)] = "Total", str(AbFrame['PaidSalary'].sum()), None, None, None
     AbFrame.to_csv(f'{folderpath}Dispatch_AB.csv', index=False, header=True)
         
+def main():
+    folderpath = "F:\\Automation_of_HR_Work\\"
+    EmployeeData = pd.read_excel(f"{folderpath}Employee-Database.xlsx")
+    PayrollData = pd.read_excel(f"{folderpath}PayRollSummary.xlsx")
 
-
-EmployeeData = calculate_payroll(EmployeeData, PayrollData)
-AbFrame,PayDataframe = prepare_payment_dataframe(EmployeeData)
-payments = split_payments(PayDataframe)
-write_payments_to_txt(payments,AbFrame)
-
-
+    EmployeeData = calculate_payroll(EmployeeData, PayrollData)
+    AbFrame,PayDataframe = prepare_payment_dataframe(EmployeeData)
+    payments = split_payments(PayDataframe)
+    write_payments_to_txt(payments,AbFrame)
+if __name__ == "__main__":
+    main()
