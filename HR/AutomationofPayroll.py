@@ -33,7 +33,7 @@ Calculates tax based on income brackets:
     else:
         return 0
 
-def calculate_payroll(EmployeeData, PayrollData):
+def calculate_payroll(EmployeeData, PayrollData,folderpath):
     
     """
 Calculate payroll details for employees.
@@ -52,14 +52,16 @@ and returns a DataFrame with payroll details for each employee.
 """
     Payroll = pd.DataFrame()
     Payroll[['EmployeeID', 'MonthlyIncome']] = PayrollData[["Employee ID", "Monthly Salary"]]
-    Payroll = pd.merge(Payroll, EmployeeData[["EmployeeID", "First Name"]], on='EmployeeID', how='inner')
+    Payroll = pd.merge(Payroll, EmployeeData[["EmployeeID","CNIC", "First Name","BANK","Account #","Account Title"
+]], on='EmployeeID', how='inner')
+    Payroll = Payroll[['EmployeeID', "CNIC", "First Name", "BANK", "Account #","Account Title",'MonthlyIncome']]
     Payroll["AnnualIncome"] = Payroll["MonthlyIncome"] * 12
 
     tax = [calculate_tax(x) for x in Payroll["AnnualIncome"]]
     Payroll["AnnualTax"] = tax
     Payroll["MonthlyTax"] = Payroll["AnnualTax"] / 12
     Payroll["PaidSalary"] = Payroll["MonthlyIncome"] - Payroll["MonthlyTax"]
-    Payroll.to_csv('payroll_data.csv', index=False)
+    Payroll.to_csv(f'{folderpath}payroll_data.csv', index=False)
 
     EmployeeData = pd.merge(EmployeeData, Payroll[["EmployeeID", "PaidSalary"]], on='EmployeeID', how='inner')
     return EmployeeData
@@ -120,7 +122,7 @@ def split_payments(PayDataframe,Salarylimit = 2.5*10**6):
         i += 1
     return cf
 
-def write_payments_to_txt(payments,AbFrame):
+def write_payments_to_txt(payments,AbFrame,folderpath):
     """
 Write payment details to text and CSV files.
 
@@ -136,21 +138,21 @@ with the total payment summary appended.
 """
     
     for i, payment_df in enumerate(payments):
-        payment_df.to_csv(f'Dispatch_{i}.txt', index=False, header=False)
+        payment_df.to_csv(f'{folderpath}Dispatch_{i}.txt', index=False, header=False)
         payment_df.loc[len(payment_df)] = "Total", str(payment_df['PaidSalary'].sum()), None, None, None
         payment_df.to_csv(f'{folderpath}Dispatch_{i}.csv', index=False, header=True)
-    AbFrame.to_csv('Dispatch_AB.txt', index=False, header=False)
+    AbFrame.to_csv(f'{folderpath}Dispatch_AB.txt', index=False, header=False)
     AbFrame.loc[len(AbFrame)] = "Total", str(AbFrame['PaidSalary'].sum()), None, None, None
     AbFrame.to_csv(f'{folderpath}Dispatch_AB.csv', index=False, header=True)
         
 def main():
-    folderpath = "F:\\Automation_of_HR_Work\\"
+    folderpath = "C:\\Users\\m\\Downloads\\Automation_of_HR_Work\\"
     EmployeeData = pd.read_excel(f"{folderpath}Employee-Database.xlsx")
     PayrollData = pd.read_excel(f"{folderpath}PayRollSummary.xlsx")
 
-    EmployeeData = calculate_payroll(EmployeeData, PayrollData)
+    EmployeeData = calculate_payroll(EmployeeData, PayrollData, folderpath)
     AbFrame,PayDataframe = prepare_payment_dataframe(EmployeeData)
     payments = split_payments(PayDataframe)
-    write_payments_to_txt(payments,AbFrame)
+    write_payments_to_txt(payments,AbFrame,folderpath)
 if __name__ == "__main__":
     main()
